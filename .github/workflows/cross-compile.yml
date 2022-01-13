@@ -1,0 +1,32 @@
+name: Cross Compile
+on:
+  push:
+    branches: [ master ]
+
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: setup-osxcross
+      run: sh setup.sh
+    - name: make
+      run: make build-all
+    - name: create-directory
+      run: sh create_directoy.sh
+#    - name: push-nethermind
+#      id: push_directory
+#      uses: cpina/github-action-push-to-another-repository@main
+#      env:
+#        API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+#      with:
+#        source-directory: runtimes
+#        destination-github-username: tanishqjasoria
+#        destination-repository-name: 'nethermind'
+#        user-email: jasoriatanishq@gmail.com
+#        commit-message: Updating verkle tree shared libraries. See ORIGIN_COMMIT from $GITHUB_REF
+#        target-directory: 'src/Nethermind/Nethermind.Trie/runtimes/'
+#        target-branch: 'verkle-runtimes'
