@@ -1,8 +1,11 @@
 name: Cross Compile
 on:
   push:
-    branches: [ master ]
-
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
@@ -15,8 +18,8 @@ jobs:
       run: sh setup.sh
     - name: make
       run: make build-all
-    - name: create-directory
-      run: sh create_directoy.sh
+#    - name: create-directory
+#      run: sh create_directoy.sh
 #    - name: push-nethermind
 #      id: push_directory
 #      uses: cpina/github-action-push-to-another-repository@main
