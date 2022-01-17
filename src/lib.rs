@@ -131,18 +131,6 @@ pub extern fn verkle_trie_insert_multiple(vt: *mut VerkleTrie, keys: *const [u8;
     _vt.trie.insert(itr.into_iter());
 }
 
-#[no_mangle]
-pub extern fn get_proof_len(_vp: *mut Proof) -> usize{
-    let mut vp = unsafe {&mut *_vp};
-    vp.len
-}
-
-#[no_mangle]
-pub extern fn get_proof_ptr(_vp: *mut Proof) -> *const u8{
-    let mut vp = unsafe {&mut *_vp};
-    vp.ptr
-}
-
 pub fn get_array_from_slice_argument(sl: *const u8) -> [u8; 32] {
     let _raw_slice = unsafe {
         assert!(!sl.is_null());
@@ -180,8 +168,6 @@ mod tests {
     use crate::verkle_trie_insert_multiple;
     use crate::get_verkle_proof_multiple;
     use crate::verify_verkle_proof_multiple;
-    use crate::get_proof_len;
-    use crate::get_proof_ptr;
     use crate::get_array_from_slice_argument;
     use std::mem::transmute;
 
@@ -308,10 +294,9 @@ mod tests {
 
         verkle_trie_insert_multiple(trie, all_keys.as_ptr(), all_vals.as_ptr(), all_keys.len());
 
-        let mut multi_proof = get_verkle_proof_multiple(trie, all_keys.as_ptr(), all_keys.len());
-        let proof_ptr = get_proof_ptr(multi_proof);
-        let proof_len = get_proof_len(multi_proof);
-        let verification = verify_verkle_proof_multiple(trie, proof_ptr, proof_len, all_keys.as_ptr(), all_vals.as_ptr(), all_keys.len());
+        let mut _proof = get_verkle_proof_multiple(trie, all_keys.as_ptr(), all_keys.len());
+        let mut proof = unsafe{&mut *_proof};
+        let verification = verify_verkle_proof_multiple(trie, proof.ptr, proof.len, all_keys.as_ptr(), all_vals.as_ptr(), all_keys.len());
         assert!(verification);
     }
 }
