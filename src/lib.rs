@@ -81,7 +81,7 @@ pub extern fn get_verkle_proof(vt: *mut VerkleTrie, key: *const u8) -> *mut Proo
 }
 
 #[no_mangle]
-pub extern fn verify_verkle_proof(vt: *mut VerkleTrie, ptr: *const u8, proof_len: usize, key: *const u8, value: *const u8) -> bool{
+pub extern fn verify_verkle_proof(vt: *mut VerkleTrie, ptr: *const u8, proof_len: usize, key: *const u8, value: *const u8) -> u8 {
     let mut proof_bytes = proof_ptr_to_proof_vec(ptr, proof_len);
     let mut proof = VerkleProof::read(&proof_bytes[..]).unwrap();
     let mut _vt = unsafe { &mut *vt};
@@ -91,7 +91,8 @@ pub extern fn verify_verkle_proof(vt: *mut VerkleTrie, ptr: *const u8, proof_len
     let val_iter = vec![Some(_value)];
     let vpp = proof.clone();
     let (res, _) = vpp.check( vec![_key], val_iter, root);
-    return res;
+    let result = res as u8;
+    result
 }
 
 #[no_mangle]
@@ -107,7 +108,7 @@ pub extern fn get_verkle_proof_multiple(vt: *mut VerkleTrie, keys: *const [u8;32
 }
 
 #[no_mangle]
-pub extern fn verify_verkle_proof_multiple(vt: *mut VerkleTrie, ptr: *const u8, proof_len: usize, keys: *const [u8;32], vals: *const [u8;32], len: usize) -> bool{
+pub extern fn verify_verkle_proof_multiple(vt: *mut VerkleTrie, ptr: *const u8, proof_len: usize, keys: *const [u8;32], vals: *const [u8;32], len: usize) -> u8 {
     let mut proof_bytes = proof_ptr_to_proof_vec(ptr, proof_len);
     let mut _vt = unsafe{&mut * vt};
     let mut proof = VerkleProof::read(&proof_bytes[..]).unwrap();
@@ -117,7 +118,8 @@ pub extern fn verify_verkle_proof_multiple(vt: *mut VerkleTrie, ptr: *const u8, 
     let values: Vec<_> = _vals.iter().map(|val| Some(*val)).collect();
     let vpp = proof.clone();
     let (res, _) = vpp.check(_keys, values, root);
-    return res;
+    let result = res as u8;
+    result
 }
 #[no_mangle]
 pub extern fn verkle_trie_insert_multiple(vt: *mut VerkleTrie, keys: *const [u8;32], vals: *const [u8;32], len: usize){
@@ -162,7 +164,7 @@ pub fn proof_ptr_to_proof_vec(ptr: *const u8, len:usize) -> Vec<u8>{
 
 #[cfg(test)]
 mod tests {
-    use crate::verkle_trie_new;
+    use crate::{get_verkle_proof, verkle_trie_new, verify_verkle_proof};
     use crate::verkle_trie_insert;
     use crate::verkle_trie_get;
     use crate::verkle_trie_insert_multiple;
@@ -262,6 +264,27 @@ mod tests {
     }
 
     #[test]
+    fn gen_verify_proof() {
+        let trie = verkle_trie_new();
+
+        let _one:[u8;32] = [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 1,
+        ];
+        let one: *const u8  = unsafe {transmute(Box::new(_one))};
+        let _one_32:[u8;32] = [1; 32];
+        let one_32 = unsafe {transmute(Box::new(_one_32))};
+        verkle_trie_insert(trie, one, one);
+        verkle_trie_insert(trie, one_32, one);
+        let _proof = get_verkle_proof(trie, one);
+        let mut proof = unsafe{&mut *_proof};
+        let verif = verify_verkle_proof(trie, proof.ptr, proof.len, one, one);
+        assert_eq!(verif, 1);
+        let verif = verify_verkle_proof(trie, proof.ptr, proof.len, one, one_32);
+        assert_eq!(verif, 0);
+    }
+
+    #[test]
     fn generate_proof_test(){
         let trie = verkle_trie_new();
 
@@ -297,6 +320,6 @@ mod tests {
         let mut _proof = get_verkle_proof_multiple(trie, all_keys.as_ptr(), all_keys.len());
         let mut proof = unsafe{&mut *_proof};
         let verification = verify_verkle_proof_multiple(trie, proof.ptr, proof.len, all_keys.as_ptr(), all_vals.as_ptr(), all_keys.len());
-        assert!(verification);
+        assert_eq!(verification, 1);
     }
 }

@@ -39,8 +39,8 @@ fn main() {
     let mut proof = unsafe{&mut *_proof};
 
     println!("verifying proofs...");
-    let mut check: bool = verify_verkle_proof(trie, proof.ptr, proof.len, one_32, one);
-    assert!(check);
+    let mut check = verify_verkle_proof(trie, proof.ptr, proof.len, one_32, one);
+    assert_eq!(check==1);
 
     println!("Creating another trie");
     let trie2 = verkle_trie_new();
@@ -74,7 +74,7 @@ fn main() {
 
     println!("verifying multiple proofs");
     check = verify_verkle_proof_multiple(trie2, proof2.ptr, proof2.len, key_ptr, val_ptr, len);
-    assert!(check);
+    assert_eq!(check, 1);
 
     println!("All Correct");
 }
