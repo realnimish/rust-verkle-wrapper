@@ -12,6 +12,7 @@ use verkle_trie::committer::precompute::PrecomputeLagrange;
 use verkle_trie::config::{VerkleConfig};
 use verkle_trie::TrieTrait;
 use verkle_trie::proof::VerkleProof;
+use verkle_trie::to_bytes::ToBytes;
 
 #[repr(C)]
 pub struct VerkleTrie {
@@ -64,6 +65,14 @@ pub extern fn verkle_trie_insert(vt: *mut VerkleTrie, key: *const u8, value: *co
     let _key = get_array_from_slice_argument(key);
     let _value = get_array_from_slice_argument(value);
     _vt.trie.insert_single(_key,_value);
+}
+
+#[no_mangle]
+pub extern fn get_root_hash(vt: *mut VerkleTrie) -> *const u8 {
+    let mut _vt = unsafe { &mut * vt };
+    let hash = _vt.trie.root_hash();
+    let (hash_ptr, len, _) = hash.to_bytes().into_raw_parts();
+    hash_ptr
 }
 
 #[no_mangle]
@@ -164,7 +173,7 @@ pub fn proof_ptr_to_proof_vec(ptr: *const u8, len:usize) -> Vec<u8>{
 
 #[cfg(test)]
 mod tests {
-    use crate::{get_verkle_proof, verkle_trie_new, verify_verkle_proof};
+    use crate::{get_verkle_proof, verkle_trie_new, verify_verkle_proof, get_root_hash};
     use crate::verkle_trie_insert;
     use crate::verkle_trie_get;
     use crate::verkle_trie_insert_multiple;
@@ -172,6 +181,14 @@ mod tests {
     use crate::verify_verkle_proof_multiple;
     use crate::get_array_from_slice_argument;
     use std::mem::transmute;
+
+    #[test]
+    fn root_hash() {
+        let trie = verkle_trie_new();
+        let hash_ptr = get_root_hash(trie);
+        let hash = get_array_from_slice_argument(hash_ptr);
+        assert_eq!(hash, [0u8; 32]);
+    }
 
     #[test]
     fn insert_fetch() {
