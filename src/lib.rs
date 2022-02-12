@@ -3,11 +3,15 @@ mod verkle_variants;
 use std::slice;
 use std::mem::transmute;
 use std::convert::TryInto;
-use verkle_variants::memory_test;
+use verkle_variants::{
+    memory_test,
+    memory_prelagrange,
+};
 
 #[repr(C)]
 pub enum VerkleTrie {
     MemoryTest(memory_test::VerkleTrie),
+    MemoryPrelagrange(memory_prelagrange::VerkleTrie),
 }
 
 #[repr(C)]
@@ -24,6 +28,10 @@ pub extern fn verkle_trie_new(database_scheme: u8, commit_scheme: u8) -> *mut Ve
                 let _vt = memory_test::verkle_trie_new();
                 VerkleTrie::MemoryTest(_vt)
             },
+            1 => {
+                let _vt = memory_prelagrange::verkle_trie_new();
+                VerkleTrie::MemoryPrelagrange(_vt)
+            },
             _ => panic!("Invalid commitScheme code")
         },
         _ => panic!("Invalid databaseScheme code")
@@ -37,6 +45,7 @@ pub extern fn verkle_trie_get(vt: *mut VerkleTrie, key: *const u8) -> *const u8 
     let _vt = unsafe{&mut *vt};
     match _vt {
         VerkleTrie::MemoryTest(vt) => memory_test::verkle_trie_get(vt, key),
+        VerkleTrie::MemoryPrelagrange(vt) => memory_prelagrange::verkle_trie_get(vt, key),
     }
 }
 
@@ -45,6 +54,7 @@ pub extern fn verkle_trie_insert(vt: *mut VerkleTrie, key: *const u8, value: *co
     let _vt = unsafe{&mut *vt};
     match _vt {
         VerkleTrie::MemoryTest(vt) => memory_test::verkle_trie_insert(vt, key, value),
+        VerkleTrie::MemoryPrelagrange(vt) => memory_prelagrange::verkle_trie_insert(vt, key, value),
     }
 }
 
@@ -53,6 +63,7 @@ pub extern fn get_root_hash(vt: *mut VerkleTrie) -> *const u8 {
     let _vt = unsafe{&mut *vt};
     match _vt {
         VerkleTrie::MemoryTest(vt) => memory_test::get_root_hash(vt),
+        VerkleTrie::MemoryPrelagrange(vt) => memory_prelagrange::get_root_hash(vt),
     }
 }
 
@@ -61,6 +72,7 @@ pub extern fn get_verkle_proof(vt: *mut VerkleTrie, key: *const u8) -> *mut Proo
     let _vt = unsafe{&mut *vt};
     match _vt {
         VerkleTrie::MemoryTest(vt) => memory_test::get_verkle_proof(vt, key),
+        VerkleTrie::MemoryPrelagrange(vt) => memory_prelagrange::get_verkle_proof(vt, key),
     }
 }
 
@@ -69,6 +81,7 @@ pub extern fn verify_verkle_proof(vt: *mut VerkleTrie, ptr: *const u8, proof_len
     let _vt = unsafe{&mut *vt};
     match _vt {
         VerkleTrie::MemoryTest(vt) => memory_test::verify_verkle_proof(vt, ptr, proof_len, key, value),
+        VerkleTrie::MemoryPrelagrange(vt) => memory_prelagrange::verify_verkle_proof(vt, ptr, proof_len, key, value),
     }
 }
 
@@ -77,6 +90,7 @@ pub extern fn get_verkle_proof_multiple(vt: *mut VerkleTrie, keys: *const [u8;32
     let _vt = unsafe{&mut *vt};
     match _vt {
         VerkleTrie::MemoryTest(vt) => memory_test::get_verkle_proof_multiple(vt, keys, len),
+        VerkleTrie::MemoryPrelagrange(vt) => memory_prelagrange::get_verkle_proof_multiple(vt, keys, len),
     }
 }
 
@@ -85,6 +99,7 @@ pub extern fn verify_verkle_proof_multiple(vt: *mut VerkleTrie, ptr: *const u8, 
     let _vt = unsafe{&mut *vt};
     match _vt {
         VerkleTrie::MemoryTest(vt) => memory_test::verify_verkle_proof_multiple(vt, ptr, proof_len, keys, vals, len),
+        VerkleTrie::MemoryPrelagrange(vt) => memory_prelagrange::verify_verkle_proof_multiple(vt, ptr, proof_len, keys, vals, len),
     }
 }
 
@@ -93,6 +108,7 @@ pub extern fn verkle_trie_insert_multiple(vt: *mut VerkleTrie, keys: *const [u8;
     let _vt = unsafe{&mut *vt};
     match _vt {
         VerkleTrie::MemoryTest(vt) => memory_test::verkle_trie_insert_multiple(vt, keys, vals, len),
+        VerkleTrie::MemoryPrelagrange(vt) => memory_prelagrange::verkle_trie_insert_multiple(vt, keys, vals, len),
     }
 }
 

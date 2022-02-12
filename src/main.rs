@@ -10,9 +10,11 @@ use std::mem::transmute;
 use rust_verkle::Proof;
 
 fn main() {
+    let mut database_scheme = 0;
+    let mut commit_scheme = 1;
 
     println!("creating new trie...");
-    let trie = verkle_trie_new(0,0);
+    let trie = verkle_trie_new(database_scheme, commit_scheme);
 
     let _one:[u8;32] = [
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -43,7 +45,7 @@ fn main() {
     assert_eq!(check, 1);
 
     println!("Creating another trie");
-    let trie2 = verkle_trie_new(0,0);
+    let trie2 = verkle_trie_new(database_scheme, commit_scheme);
 
     let keys = vec![_one,_one_32];
     let vals = vec![_one_32,_one];
