@@ -1,18 +1,12 @@
-// use rust_verkle::{dummy_setup, verkle_trie_new, verkle_trie_insert, verkle_trie_create_path, verkle_trie_create_proof, verkle_trie_verify};
-use rust_verkle::verkle_trie_new;
-use rust_verkle::verkle_trie_insert;
-use rust_verkle::verkle_trie_insert_multiple;
-use rust_verkle::verkle_trie_get;
-use rust_verkle::get_verkle_proof;
-use rust_verkle::verify_verkle_proof;
-use rust_verkle::{get_verkle_proof_multiple, verify_verkle_proof_multiple};
 use std::mem::transmute;
-use rust_verkle::Proof;
+use rust_verkle::*;
 
 fn main() {
+    let database_scheme = 0;
+    let commit_scheme = 1;
 
     println!("creating new trie...");
-    let trie = verkle_trie_new();
+    let trie = verkle_trie_new(database_scheme, commit_scheme);
 
     let _one:[u8;32] = [
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -36,14 +30,14 @@ fn main() {
 
     println!("creating proof...");
     let mut _proof = get_verkle_proof(trie, one_32);
-    let mut proof = unsafe{&mut *_proof};
+    let proof = unsafe{&mut *_proof};
 
     println!("verifying proofs...");
     let mut check = verify_verkle_proof(trie, proof.ptr, proof.len, one_32, one);
     assert_eq!(check, 1);
 
     println!("Creating another trie");
-    let trie2 = verkle_trie_new();
+    let trie2 = verkle_trie_new(database_scheme, commit_scheme);
 
     let keys = vec![_one,_one_32];
     let vals = vec![_one_32,_one];
@@ -62,7 +56,7 @@ fn main() {
 
     println!("Creating proof for multiple Key Vals");
     let mut _proof2 = get_verkle_proof_multiple(trie2, key_ptr, len);
-    let mut proof2 = unsafe{ &mut *_proof2};
+    let proof2 = unsafe{ &mut *_proof2};
 
     // println!("verifying proof 1");
     // check = verify_verkle_proof(trie2, proof2, one_32, one);
