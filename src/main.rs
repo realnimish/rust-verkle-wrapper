@@ -2,8 +2,8 @@ use std::mem::transmute;
 use rust_verkle::*;
 
 fn main() {
-    let mut database_scheme = 0;
-    let mut commit_scheme = 1;
+    let database_scheme = 0;
+    let commit_scheme = 1;
 
     println!("creating new trie...");
     let trie = verkle_trie_new(database_scheme, commit_scheme);

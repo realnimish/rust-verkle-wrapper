@@ -11,19 +11,13 @@ use crate::{
     proof_ptr_to_proof_vec,
 };
 
-pub trait VerkleGroup<T: TrieTrait> {
-    fn trie(&mut self) -> &mut T;
-}
+pub trait FFI: TrieTrait{
 
-pub trait FFI<T: TrieTrait> : VerkleGroup<T>{
-    type VerkleTrie: VerkleGroup<T>;
-    // type Proof; // Could use this if there can be different kinds of proofs
-
-    fn verkle_trie_new() -> Self::VerkleTrie;
+    fn verkle_trie_new() -> Self;
     
     fn verkle_trie_get(&mut self, key: *const u8) -> *const u8 {
         let _key = get_array_from_slice_argument(key);
-        let _result = &self.trie().get(_key);
+        let _result = &self.get(_key);
         match _result {
             Some(x) => {
                 let _result = unsafe { transmute ( Box::new(*x))};
@@ -36,18 +30,18 @@ pub trait FFI<T: TrieTrait> : VerkleGroup<T>{
     fn verkle_trie_insert(&mut self, key: *const u8, value: *const u8) {
         let _key = get_array_from_slice_argument(key);
         let _value = get_array_from_slice_argument(value);
-        self.trie().insert_single(_key,_value);
+        self.insert_single(_key,_value);
     }
     
     fn get_root_hash(&mut self) -> *const u8 {
-        let hash = self.trie().root_hash();
+        let hash = self.root_hash();
         let (hash_ptr, _, _) = hash.to_bytes().into_raw_parts();
         hash_ptr
     }
     
     fn get_verkle_proof(&mut self, key: *const u8) -> *mut Proof {
         let _key = get_array_from_slice_argument(key);
-        let _proof = self.trie().create_verkle_proof(vec![_key].into_iter());
+        let _proof = self.create_verkle_proof(vec![_key].into_iter());
         let mut proof_bytes = Vec::new();
         _proof.write(&mut proof_bytes).expect("Could write proof");
         let(_ptr, _len, _) = proof_bytes.into_raw_parts();
@@ -60,7 +54,7 @@ pub trait FFI<T: TrieTrait> : VerkleGroup<T>{
         let proof = VerkleProof::read(&proof_bytes[..]).unwrap();
         let _key = get_array_from_slice_argument(key);
         let _value = get_array_from_slice_argument(value);
-        let root = self.trie().root_commitment();
+        let root = self.root_commitment();
         let val_iter = vec![Some(_value)];
         let vpp = proof.clone();
         let (res, _) = vpp.check( vec![_key], val_iter, root);
@@ -70,7 +64,7 @@ pub trait FFI<T: TrieTrait> : VerkleGroup<T>{
     
     fn get_verkle_proof_multiple(&mut self, keys: *const [u8;32], len: usize) -> *mut Proof{
         let _keys = get_vector_from_slice_argument(keys, len);
-        let _proof = self.trie().create_verkle_proof(_keys.into_iter());
+        let _proof = self.create_verkle_proof(_keys.into_iter());
         let mut proof_bytes = Vec::new();
         _proof.write(&mut proof_bytes).expect("Could write proof");
         let(_ptr, _len, _) = proof_bytes.into_raw_parts();
@@ -83,7 +77,7 @@ pub trait FFI<T: TrieTrait> : VerkleGroup<T>{
         let proof = VerkleProof::read(&proof_bytes[..]).expect("Could write proof");
         let _keys = get_vector_from_slice_argument(keys, len);
         let _vals = get_vector_from_slice_argument(vals, len);
-        let root = self.trie().root_commitment();
+        let root = self.root_commitment();
         let values: Vec<_> = _vals.iter().map(|val| Some(*val)).collect();
         let vpp = proof.clone();
         let (res, _) = vpp.check(_keys, values, root);
@@ -98,6 +92,6 @@ pub trait FFI<T: TrieTrait> : VerkleGroup<T>{
         for i in 1..=_keys.len() - 1{
             itr.push((_keys[i], _vals[i]));
         }
-        self.trie().insert(itr.into_iter());
+        self.insert(itr.into_iter());
     }
 }
