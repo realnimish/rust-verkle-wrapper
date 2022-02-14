@@ -12,7 +12,13 @@ impl FFI for VerkleTrie {
 
     fn verkle_trie_new() -> Self {
         let _db = MemoryDb::new();
-        let config = VerkleConfig::new(_db);
+        let config = match VerkleConfig::new(_db) {
+            Ok(cnf) => cnf,
+            Err(_) => {
+                let _db = MemoryDb::new();
+                VerkleConfig::open(_db).unwrap()
+            },
+        };
         let mut _trie = Trie::new(config);
         _trie
     }

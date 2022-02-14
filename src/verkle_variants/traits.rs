@@ -2,7 +2,7 @@ use std::ptr;
 use std::mem::transmute;
 use verkle_trie::TrieTrait;
 use verkle_trie::proof::VerkleProof;
-use verkle_trie::to_bytes::ToBytes;
+use verkle_trie::from_to_bytes::ToBytes;
 
 use crate::{
     Proof,
