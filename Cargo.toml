@@ -29,3 +29,6 @@ itertools = "0.10.1"
 rocksdb = { version = "0.17", features = [
     "snappy",
 ], default-features = false}
+
+[dev-dependencies]
+serial_test = "*"
