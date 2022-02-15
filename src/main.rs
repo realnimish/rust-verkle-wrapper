@@ -2,8 +2,8 @@ use std::mem::transmute;
 use rust_verkle::*;
 
 fn main() {
-    let database_scheme = 0;
-    let commit_scheme = 1;
+    let database_scheme = DatabaseScheme::MemoryDb;
+    let commit_scheme = CommitScheme::TestCommitment;
 
     println!("creating new trie...");
     let trie = verkle_trie_new(database_scheme, commit_scheme);
@@ -35,6 +35,9 @@ fn main() {
     println!("verifying proofs...");
     let mut check = verify_verkle_proof(trie, proof.ptr, proof.len, one_32, one);
     assert_eq!(check, 1);
+
+    let database_scheme = DatabaseScheme::MemoryDb;
+    let commit_scheme = CommitScheme::TestCommitment;
 
     println!("Creating another trie");
     let trie2 = verkle_trie_new(database_scheme, commit_scheme);

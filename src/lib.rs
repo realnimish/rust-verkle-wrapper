@@ -21,30 +21,40 @@ pub enum VerkleTrie {
 pub struct Proof {
     pub ptr: *const u8,
     pub len: usize,
-} 
+}
+
+#[repr(C)]
+pub enum DatabaseScheme {
+    MemoryDb,
+    RocksDb,
+}
+
+#[repr(C)]
+pub enum CommitScheme {
+    TestCommitment,
+    PrecomputeLagrange,
+}
 
 #[no_mangle]
-pub extern fn verkle_trie_new(database_scheme: u8, commit_scheme: u8) -> *mut VerkleTrie {
+pub extern fn verkle_trie_new(database_scheme: DatabaseScheme, commit_scheme: CommitScheme) -> *mut VerkleTrie {
     let vt = match database_scheme {
-        0 => match commit_scheme {
-            0 => {
+        DatabaseScheme::MemoryDb => match commit_scheme {
+            CommitScheme::TestCommitment => {
                 let _vt = memory_test::VerkleTrie::verkle_trie_new();
                 VerkleTrie::MemoryTest(_vt)
             },
-            1 => {
+            CommitScheme::PrecomputeLagrange => {
                 let _vt = memory_prelagrange::VerkleTrie::verkle_trie_new();
                 VerkleTrie::MemoryPrelagrange(_vt)
             },
-            _ => panic!("Invalid commitScheme code")
         },
-        1 => match commit_scheme {
-            0 => {
+        DatabaseScheme::RocksDb => match commit_scheme {
+            CommitScheme::TestCommitment => {
                 let _vt = rocksdb_test::VerkleTrie::verkle_trie_new();
                 VerkleTrie::RocksdbTest(_vt)
             },
-            _ => panic!("Invalid commitScheme code")
+            CommitScheme::PrecomputeLagrange => panic!("Given model not implemented")
         }
-        _ => panic!("Invalid databaseScheme code")
     };
     let ret = unsafe { transmute (Box::new(vt))};
     ret
