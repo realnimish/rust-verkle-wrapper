@@ -32,3 +32,4 @@ rocksdb = { version = "0.17", features = [
 
 [dev-dependencies]
 serial_test = "*"
+tempfile = "3.3.0"

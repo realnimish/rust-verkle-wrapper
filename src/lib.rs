@@ -182,28 +182,204 @@ pub fn proof_ptr_to_proof_vec(ptr: *const u8, len:usize) -> Vec<u8>{
 }
 
 #[cfg(test)]
-mod tests {
-    use crate::{get_verkle_proof, verkle_trie_new, verify_verkle_proof, get_root_hash};
-    use crate::verkle_trie_insert;
-    use crate::verkle_trie_get;
-    use crate::verkle_trie_insert_multiple;
-    use crate::get_verkle_proof_multiple;
-    use crate::verify_verkle_proof_multiple;
-    use crate::get_array_from_slice_argument;
-    use std::mem::transmute;
+#[allow(non_snake_case)]
+mod test_MemoryTest {
+    use super::*;
 
     #[test]
     fn root_hash() {
-        let trie = verkle_trie_new(0,0);
+        let trie = verkle_trie_new(
+            DatabaseScheme::MemoryDb,
+            CommitScheme::TestCommitment,
+            test_helper::str_to_cstr("dummy"),
+        );
+        test_helper::root_hash(trie);
+    }
+
+    #[test]
+    fn insert_fetch() {
+        let trie = verkle_trie_new(
+            DatabaseScheme::MemoryDb,
+            CommitScheme::TestCommitment,
+            test_helper::str_to_cstr("dummy"),
+        );
+        test_helper::insert_fetch(trie);
+    }
+
+    #[test]
+    fn insert_account_fetch() {
+        let trie = verkle_trie_new(
+            DatabaseScheme::MemoryDb,
+            CommitScheme::TestCommitment,
+            test_helper::str_to_cstr("dummy"),
+        );
+        test_helper::insert_account_fetch(trie);
+    }
+
+    #[test]
+    fn gen_verify_proof() {
+        let trie = verkle_trie_new(
+            DatabaseScheme::MemoryDb,
+            CommitScheme::TestCommitment,
+            test_helper::str_to_cstr("dummy"),
+        );
+        test_helper::gen_verify_proof(trie);
+    }
+
+    #[test]
+    fn generate_proof_test() {
+        let trie = verkle_trie_new(
+            DatabaseScheme::MemoryDb,
+            CommitScheme::TestCommitment,
+            test_helper::str_to_cstr("dummy"),
+        );
+        test_helper::generate_proof_test(trie);
+    }
+}
+/*
+#[cfg(test)]
+#[allow(non_snake_case)]
+mod test_MemoryPrelagrange {
+    use super::*;
+
+    #[test]
+    fn root_hash() {
+        let trie = verkle_trie_new(
+            DatabaseScheme::MemoryDb,
+            CommitScheme::PrecomputeLagrange,
+            test_helper::str_to_cstr("dummy"),
+        );
+        test_helper::root_hash(trie);
+    }
+
+    #[test]
+    fn insert_fetch() {
+        let trie = verkle_trie_new(
+            DatabaseScheme::MemoryDb,
+            CommitScheme::PrecomputeLagrange,
+            test_helper::str_to_cstr("dummy"),
+        );
+        test_helper::insert_fetch(trie);
+    }
+
+    #[test]
+    fn insert_account_fetch() {
+        let trie = verkle_trie_new(
+            DatabaseScheme::MemoryDb,
+            CommitScheme::PrecomputeLagrange,
+            test_helper::str_to_cstr("dummy"),
+        );
+        test_helper::insert_account_fetch(trie);
+    }
+
+    #[test]
+    fn gen_verify_proof() {
+        let trie = verkle_trie_new(
+            DatabaseScheme::MemoryDb,
+            CommitScheme::PrecomputeLagrange,
+            test_helper::str_to_cstr("dummy"),
+        );
+        test_helper::gen_verify_proof(trie);
+    }
+
+    #[test]
+    fn generate_proof_test() {
+        let trie = verkle_trie_new(
+            DatabaseScheme::MemoryDb,
+            CommitScheme::PrecomputeLagrange,
+            test_helper::str_to_cstr("dummy"),
+        );
+        test_helper::generate_proof_test(trie);
+    }
+}
+*/
+#[cfg(test)]
+#[allow(non_snake_case)]
+mod test_RocksdbTest {
+    use super::*;
+    use tempfile::Builder;
+
+    #[test]
+    fn root_hash() {
+        let dir = Builder::new().tempdir().unwrap();
+        let path = dir.path().to_str().unwrap();
+        let trie = verkle_trie_new(
+            DatabaseScheme::RocksDb,
+            CommitScheme::TestCommitment,
+            test_helper::str_to_cstr(path),
+        );
+        test_helper::root_hash(trie);
+    }
+
+    #[test]
+    fn insert_fetch() {
+        let dir = Builder::new().tempdir().unwrap();
+        let path = dir.path().to_str().unwrap();
+        let trie = verkle_trie_new(
+            DatabaseScheme::RocksDb,
+            CommitScheme::TestCommitment,
+            test_helper::str_to_cstr(path),
+        );
+        test_helper::insert_fetch(trie);
+    }
+
+    #[test]
+    fn insert_account_fetch() {
+        let dir = Builder::new().tempdir().unwrap();
+        let path = dir.path().to_str().unwrap();
+        let trie = verkle_trie_new(
+            DatabaseScheme::RocksDb,
+            CommitScheme::TestCommitment,
+            test_helper::str_to_cstr(path),
+        );
+        test_helper::insert_account_fetch(trie);
+    }
+
+    #[test]
+    fn gen_verify_proof() {
+        let dir = Builder::new().tempdir().unwrap();
+        let path = dir.path().to_str().unwrap();
+        let trie = verkle_trie_new(
+            DatabaseScheme::RocksDb,
+            CommitScheme::TestCommitment,
+            test_helper::str_to_cstr(path),
+        );
+        test_helper::gen_verify_proof(trie);
+    }
+
+    #[test]
+    fn generate_proof_test() {
+        let dir = Builder::new().tempdir().unwrap();
+        let path = dir.path().to_str().unwrap();
+        let trie = verkle_trie_new(
+            DatabaseScheme::RocksDb,
+            CommitScheme::TestCommitment,
+            test_helper::str_to_cstr(path),
+        );
+        test_helper::generate_proof_test(trie);
+    }
+}
+
+#[cfg(test)]
+mod test_helper {
+    use super::*;
+    use std::mem::transmute;
+
+    pub fn str_to_cstr(val: &str) -> *const c_char {
+        let byte = val.as_bytes();
+        unsafe {
+            CStr::from_bytes_with_nul_unchecked(byte)
+            .as_ptr()
+        }
+    }
+
+    pub fn root_hash(trie: *mut VerkleTrie) {
         let hash_ptr = get_root_hash(trie);
         let hash = get_array_from_slice_argument(hash_ptr);
         assert_eq!(hash, [0u8; 32]);
     }
 
-    #[test]
-    fn insert_fetch() {
-        let trie = verkle_trie_new(0,0);
-
+    pub fn insert_fetch(trie: *mut VerkleTrie) {
         let _one:[u8;32] = [
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 1,
@@ -219,10 +395,7 @@ mod tests {
         assert_eq!(result, _one);
     }
 
-    #[test]
-    fn insert_account_fetch() {
-        let trie = verkle_trie_new(0,0);
-
+    pub fn insert_account_fetch(trie: *mut VerkleTrie) {
         let tree_key_version:[u8;32] = [ 121, 85, 7, 198, 131, 230, 143, 90, 165, 129, 173, 81, 186,
             89, 19, 191, 13, 107, 197, 120, 243, 229, 224, 183, 72, 25, 6, 8, 210, 159, 31, 0];
 
@@ -290,10 +463,7 @@ mod tests {
         assert!(!val.is_null());
     }
 
-    #[test]
-    fn gen_verify_proof() {
-        let trie = verkle_trie_new(0,0);
-
+    pub fn gen_verify_proof(trie: *mut VerkleTrie) {
         let _one:[u8;32] = [
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 1,
@@ -311,10 +481,7 @@ mod tests {
         assert_eq!(verif, 0);
     }
 
-    #[test]
-    fn generate_proof_test(){
-        let trie = verkle_trie_new(0,0);
-
+    pub fn generate_proof_test(trie: *mut VerkleTrie){
         let tree_key_version:[u8;32] = [ 121, 85, 7, 198, 131, 230, 143, 90, 165, 129, 173, 81, 186,
             89, 19, 191, 13, 107, 197, 120, 243, 229, 224, 183, 72, 25, 6, 8, 210, 159, 31, 0];
 
