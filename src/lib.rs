@@ -182,185 +182,6 @@ pub fn proof_ptr_to_proof_vec(ptr: *const u8, len:usize) -> Vec<u8>{
 }
 
 #[cfg(test)]
-#[allow(non_snake_case)]
-mod test_MemoryTest {
-    use super::*;
-
-    #[test]
-    fn root_hash() {
-        let trie = verkle_trie_new(
-            DatabaseScheme::MemoryDb,
-            CommitScheme::TestCommitment,
-            test_helper::str_to_cstr("dummy"),
-        );
-        test_helper::root_hash(trie);
-    }
-
-    #[test]
-    fn insert_fetch() {
-        let trie = verkle_trie_new(
-            DatabaseScheme::MemoryDb,
-            CommitScheme::TestCommitment,
-            test_helper::str_to_cstr("dummy"),
-        );
-        test_helper::insert_fetch(trie);
-    }
-
-    #[test]
-    fn insert_account_fetch() {
-        let trie = verkle_trie_new(
-            DatabaseScheme::MemoryDb,
-            CommitScheme::TestCommitment,
-            test_helper::str_to_cstr("dummy"),
-        );
-        test_helper::insert_account_fetch(trie);
-    }
-
-    #[test]
-    fn gen_verify_proof() {
-        let trie = verkle_trie_new(
-            DatabaseScheme::MemoryDb,
-            CommitScheme::TestCommitment,
-            test_helper::str_to_cstr("dummy"),
-        );
-        test_helper::gen_verify_proof(trie);
-    }
-
-    #[test]
-    fn generate_proof_test() {
-        let trie = verkle_trie_new(
-            DatabaseScheme::MemoryDb,
-            CommitScheme::TestCommitment,
-            test_helper::str_to_cstr("dummy"),
-        );
-        test_helper::generate_proof_test(trie);
-    }
-}
-/*
-#[cfg(test)]
-#[allow(non_snake_case)]
-mod test_MemoryPrelagrange {
-    use super::*;
-
-    #[test]
-    fn root_hash() {
-        let trie = verkle_trie_new(
-            DatabaseScheme::MemoryDb,
-            CommitScheme::PrecomputeLagrange,
-            test_helper::str_to_cstr("dummy"),
-        );
-        test_helper::root_hash(trie);
-    }
-
-    #[test]
-    fn insert_fetch() {
-        let trie = verkle_trie_new(
-            DatabaseScheme::MemoryDb,
-            CommitScheme::PrecomputeLagrange,
-            test_helper::str_to_cstr("dummy"),
-        );
-        test_helper::insert_fetch(trie);
-    }
-
-    #[test]
-    fn insert_account_fetch() {
-        let trie = verkle_trie_new(
-            DatabaseScheme::MemoryDb,
-            CommitScheme::PrecomputeLagrange,
-            test_helper::str_to_cstr("dummy"),
-        );
-        test_helper::insert_account_fetch(trie);
-    }
-
-    #[test]
-    fn gen_verify_proof() {
-        let trie = verkle_trie_new(
-            DatabaseScheme::MemoryDb,
-            CommitScheme::PrecomputeLagrange,
-            test_helper::str_to_cstr("dummy"),
-        );
-        test_helper::gen_verify_proof(trie);
-    }
-
-    #[test]
-    fn generate_proof_test() {
-        let trie = verkle_trie_new(
-            DatabaseScheme::MemoryDb,
-            CommitScheme::PrecomputeLagrange,
-            test_helper::str_to_cstr("dummy"),
-        );
-        test_helper::generate_proof_test(trie);
-    }
-}
-*/
-#[cfg(test)]
-#[allow(non_snake_case)]
-mod test_RocksdbTest {
-    use super::*;
-    use tempfile::Builder;
-
-    #[test]
-    fn root_hash() {
-        let dir = Builder::new().tempdir().unwrap();
-        let path = dir.path().to_str().unwrap();
-        let trie = verkle_trie_new(
-            DatabaseScheme::RocksDb,
-            CommitScheme::TestCommitment,
-            test_helper::str_to_cstr(path),
-        );
-        test_helper::root_hash(trie);
-    }
-
-    #[test]
-    fn insert_fetch() {
-        let dir = Builder::new().tempdir().unwrap();
-        let path = dir.path().to_str().unwrap();
-        let trie = verkle_trie_new(
-            DatabaseScheme::RocksDb,
-            CommitScheme::TestCommitment,
-            test_helper::str_to_cstr(path),
-        );
-        test_helper::insert_fetch(trie);
-    }
-
-    #[test]
-    fn insert_account_fetch() {
-        let dir = Builder::new().tempdir().unwrap();
-        let path = dir.path().to_str().unwrap();
-        let trie = verkle_trie_new(
-            DatabaseScheme::RocksDb,
-            CommitScheme::TestCommitment,
-            test_helper::str_to_cstr(path),
-        );
-        test_helper::insert_account_fetch(trie);
-    }
-
-    #[test]
-    fn gen_verify_proof() {
-        let dir = Builder::new().tempdir().unwrap();
-        let path = dir.path().to_str().unwrap();
-        let trie = verkle_trie_new(
-            DatabaseScheme::RocksDb,
-            CommitScheme::TestCommitment,
-            test_helper::str_to_cstr(path),
-        );
-        test_helper::gen_verify_proof(trie);
-    }
-
-    #[test]
-    fn generate_proof_test() {
-        let dir = Builder::new().tempdir().unwrap();
-        let path = dir.path().to_str().unwrap();
-        let trie = verkle_trie_new(
-            DatabaseScheme::RocksDb,
-            CommitScheme::TestCommitment,
-            test_helper::str_to_cstr(path),
-        );
-        test_helper::generate_proof_test(trie);
-    }
-}
-
-#[cfg(test)]
 mod test_helper {
     use super::*;
     use std::mem::transmute;
@@ -517,3 +338,55 @@ mod test_helper {
         assert_eq!(verification, 1);
     }
 }
+
+macro_rules! test_model {
+    (
+        $MD: ident   /// Module Name
+        $DB: ident;  /// Database enum
+        $CMT: ident; /// Commit enum
+        $($FN: ident),+  /// list of functions to implement
+    ) => {
+        #[cfg(test)]
+        #[allow(non_snake_case)]
+        mod $MD {
+            use super::*;
+            use tempfile::Builder;
+            
+            $(
+                #[test]
+                fn $FN() {
+                    let dir = Builder::new().tempdir().unwrap();
+                    let path = dir.path().to_str().unwrap();
+                    let trie = verkle_trie_new(
+                        DatabaseScheme::$DB,
+                        CommitScheme::$CMT,
+                        test_helper::str_to_cstr(path),
+                    );
+                    test_helper::$FN(trie);
+                }
+            )+
+        }
+    };
+}
+
+test_model![
+    MemoryTest
+    MemoryDb;
+    TestCommitment;
+    root_hash,
+    insert_fetch,
+    insert_account_fetch,
+    gen_verify_proof,
+    generate_proof_test
+];
+
+test_model![
+    RocksdbTest
+    RocksDb;
+    TestCommitment;
+    root_hash,
+    insert_fetch,
+    insert_account_fetch,
+    gen_verify_proof,
+    generate_proof_test
+];
