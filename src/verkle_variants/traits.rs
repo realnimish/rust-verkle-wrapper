@@ -13,7 +13,7 @@ use crate::{
 
 pub trait FFI: TrieTrait{
 
-    fn verkle_trie_new() -> Self;
+    fn verkle_trie_new(path: &str) -> Self;
     
     fn verkle_trie_get(&mut self, key: *const u8) -> *const u8 {
         let _key = get_array_from_slice_argument(key);

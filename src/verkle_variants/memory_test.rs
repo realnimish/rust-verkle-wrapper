@@ -9,7 +9,7 @@ use crate::verkle_variants::traits::FFI;
 pub type VerkleTrie = Trie<MemoryDb, TestCommitter>;
 
 impl FFI for VerkleTrie {
-    fn verkle_trie_new() -> Self {
+    fn verkle_trie_new(_path: &str) -> Self {
         let _db = MemoryDb::new();
         let committer = TestCommitter;
         let config = Config{ db: _db, committer };

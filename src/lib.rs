@@ -9,6 +9,8 @@ use verkle_variants::{
     rocksdb_test,
     traits::FFI,
 };
+use std::ffi::CStr;
+use std::os::raw::c_char;
 
 #[repr(C)]
 pub enum VerkleTrie {
@@ -36,21 +38,31 @@ pub enum CommitScheme {
 }
 
 #[no_mangle]
-pub extern fn verkle_trie_new(database_scheme: DatabaseScheme, commit_scheme: CommitScheme) -> *mut VerkleTrie {
+pub extern fn verkle_trie_new(
+    database_scheme: DatabaseScheme,
+    commit_scheme: CommitScheme,
+    db_path: *const c_char
+) -> *mut VerkleTrie {
+
+    let db_path = unsafe {
+        CStr::from_ptr(db_path)
+        .to_str().expect("Invalid pathname")
+    };
+
     let vt = match database_scheme {
         DatabaseScheme::MemoryDb => match commit_scheme {
             CommitScheme::TestCommitment => {
-                let _vt = memory_test::VerkleTrie::verkle_trie_new();
+                let _vt = memory_test::VerkleTrie::verkle_trie_new(db_path);
                 VerkleTrie::MemoryTest(_vt)
             },
             CommitScheme::PrecomputeLagrange => {
-                let _vt = memory_prelagrange::VerkleTrie::verkle_trie_new();
+                let _vt = memory_prelagrange::VerkleTrie::verkle_trie_new(db_path);
                 VerkleTrie::MemoryPrelagrange(_vt)
             },
         },
         DatabaseScheme::RocksDb => match commit_scheme {
             CommitScheme::TestCommitment => {
-                let _vt = rocksdb_test::VerkleTrie::verkle_trie_new();
+                let _vt = rocksdb_test::VerkleTrie::verkle_trie_new(db_path);
                 VerkleTrie::RocksdbTest(_vt)
             },
             CommitScheme::PrecomputeLagrange => panic!("Given model not implemented")
