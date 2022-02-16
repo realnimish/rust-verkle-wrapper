@@ -7,6 +7,7 @@ use verkle_variants::{
     memory_test,
     memory_prelagrange,
     rocksdb_test,
+    rocksdb_prelagrange,
     traits::FFI,
 };
 use std::ffi::CStr;
@@ -17,6 +18,7 @@ pub enum VerkleTrie {
     MemoryTest(memory_test::VerkleTrie),
     MemoryPrelagrange(memory_prelagrange::VerkleTrie),
     RocksdbTest(rocksdb_test::VerkleTrie),
+    RocksdbPrelagrange(rocksdb_prelagrange::VerkleTrie),
 }
 
 #[repr(C)]
@@ -65,7 +67,10 @@ pub extern fn verkle_trie_new(
                 let _vt = rocksdb_test::VerkleTrie::verkle_trie_new(db_path);
                 VerkleTrie::RocksdbTest(_vt)
             },
-            CommitScheme::PrecomputeLagrange => panic!("Given model not implemented")
+            CommitScheme::PrecomputeLagrange => {
+                let _vt = rocksdb_prelagrange::VerkleTrie::verkle_trie_new(db_path);
+                VerkleTrie::RocksdbPrelagrange(_vt)
+            }
         }
     };
     let ret = unsafe { transmute (Box::new(vt))};
@@ -79,6 +84,7 @@ pub extern fn verkle_trie_get(vt: *mut VerkleTrie, key: *const u8) -> *const u8 
         VerkleTrie::MemoryTest(vt) => vt.verkle_trie_get(key),
         VerkleTrie::MemoryPrelagrange(vt) => vt.verkle_trie_get(key),
         VerkleTrie::RocksdbTest(vt) => vt.verkle_trie_get(key),
+        VerkleTrie::RocksdbPrelagrange(vt) => vt.verkle_trie_get(key),
     }
 }
 
@@ -89,6 +95,7 @@ pub extern fn verkle_trie_insert(vt: *mut VerkleTrie, key: *const u8, value: *co
         VerkleTrie::MemoryTest(vt) => vt.verkle_trie_insert(key, value),
         VerkleTrie::MemoryPrelagrange(vt) => vt.verkle_trie_insert(key, value),
         VerkleTrie::RocksdbTest(vt) => vt.verkle_trie_insert(key, value),
+        VerkleTrie::RocksdbPrelagrange(vt) => vt.verkle_trie_insert(key, value),
     }
 }
 
@@ -99,6 +106,7 @@ pub extern fn get_root_hash(vt: *mut VerkleTrie) -> *const u8 {
         VerkleTrie::MemoryTest(vt) => vt.get_root_hash(),
         VerkleTrie::MemoryPrelagrange(vt) => vt.get_root_hash(),
         VerkleTrie::RocksdbTest(vt) => vt.get_root_hash(),
+        VerkleTrie::RocksdbPrelagrange(vt) => vt.get_root_hash(),
     }
 }
 
@@ -109,6 +117,7 @@ pub extern fn get_verkle_proof(vt: *mut VerkleTrie, key: *const u8) -> *mut Proo
         VerkleTrie::MemoryTest(vt) => vt.get_verkle_proof(key),
         VerkleTrie::MemoryPrelagrange(vt) => vt.get_verkle_proof(key),
         VerkleTrie::RocksdbTest(vt) => vt.get_verkle_proof(key),
+        VerkleTrie::RocksdbPrelagrange(vt) => vt.get_verkle_proof(key),
     }
 }
 
@@ -119,6 +128,7 @@ pub extern fn verify_verkle_proof(vt: *mut VerkleTrie, ptr: *const u8, proof_len
         VerkleTrie::MemoryTest(vt) => vt.verify_verkle_proof(ptr, proof_len, key, value),
         VerkleTrie::MemoryPrelagrange(vt) => vt.verify_verkle_proof(ptr, proof_len, key, value),
         VerkleTrie::RocksdbTest(vt) => vt.verify_verkle_proof(ptr, proof_len, key, value),
+        VerkleTrie::RocksdbPrelagrange(vt) => vt.verify_verkle_proof(ptr, proof_len, key, value),
     }
 }
 
@@ -129,6 +139,7 @@ pub extern fn get_verkle_proof_multiple(vt: *mut VerkleTrie, keys: *const [u8;32
         VerkleTrie::MemoryTest(vt) => vt.get_verkle_proof_multiple(keys, len),
         VerkleTrie::MemoryPrelagrange(vt) => vt.get_verkle_proof_multiple(keys, len),
         VerkleTrie::RocksdbTest(vt) => vt.get_verkle_proof_multiple(keys, len),
+        VerkleTrie::RocksdbPrelagrange(vt) => vt.get_verkle_proof_multiple(keys, len),
     }
 }
 
@@ -139,6 +150,7 @@ pub extern fn verify_verkle_proof_multiple(vt: *mut VerkleTrie, ptr: *const u8, 
         VerkleTrie::MemoryTest(vt) => vt.verify_verkle_proof_multiple(ptr, proof_len, keys, vals, len),
         VerkleTrie::MemoryPrelagrange(vt) => vt.verify_verkle_proof_multiple(ptr, proof_len, keys, vals, len),
         VerkleTrie::RocksdbTest(vt) => vt.verify_verkle_proof_multiple(ptr, proof_len, keys, vals, len),
+        VerkleTrie::RocksdbPrelagrange(vt) => vt.verify_verkle_proof_multiple(ptr, proof_len, keys, vals, len),
     }
 }
 
@@ -149,6 +161,7 @@ pub extern fn verkle_trie_insert_multiple(vt: *mut VerkleTrie, keys: *const [u8;
         VerkleTrie::MemoryTest(vt) => vt.verkle_trie_insert_multiple(keys, vals, len),
         VerkleTrie::MemoryPrelagrange(vt) => vt.verkle_trie_insert_multiple(keys, vals, len),
         VerkleTrie::RocksdbTest(vt) => vt.verkle_trie_insert_multiple(keys, vals, len),
+        VerkleTrie::RocksdbPrelagrange(vt) => vt.verkle_trie_insert_multiple(keys, vals, len),
     }
 }
 
@@ -341,10 +354,10 @@ mod test_helper {
 
 macro_rules! test_model {
     (
-        $MD: ident   /// Module Name
+        $MD: ident;   /// Module Name
         $DB: ident;  /// Database enum
         $CMT: ident; /// Commit enum
-        $($FN: ident),+  /// list of functions to implement
+        $($FN: ident),*  /// list of functions to implement
     ) => {
         #[cfg(test)]
         #[allow(non_snake_case)]
@@ -364,13 +377,13 @@ macro_rules! test_model {
                     );
                     test_helper::$FN(trie);
                 }
-            )+
+            )*
         }
     };
 }
 
 test_model![
-    MemoryTest
+    MemoryTest;
     MemoryDb;
     TestCommitment;
     root_hash,
@@ -381,7 +394,7 @@ test_model![
 ];
 
 test_model![
-    RocksdbTest
+    RocksdbTest;
     RocksDb;
     TestCommitment;
     root_hash,
@@ -389,4 +402,17 @@ test_model![
     insert_account_fetch,
     gen_verify_proof,
     generate_proof_test
+];
+
+test_model![
+    MemoryPrelagrange;
+    MemoryDb;
+    PrecomputeLagrange;
+    root_hash
+];
+
+test_model![
+    RocksdbPrelagrange;
+    RocksDb;
+    PrecomputeLagrange;
 ];
