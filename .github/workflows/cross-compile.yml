@@ -8,29 +8,69 @@ on:
       - main
 
 jobs:
-  build:
 
-    runs-on: ubuntu-latest
-
+  build-osx:
+    runs-on: macos-latest
     steps:
     - uses: actions/checkout@v2
-    - name: setup-osxcross
-      run: sh setup.sh
     - name: make
-      run: make build-all
+      run: make build-osx
     - name: create-directory
       run: sh create_directoy.sh
-    - name: push-nethermind
-      if: ${{ github.event_name == 'push' }}
-      id: push_directory
-      uses: cpina/github-action-push-to-another-repository@main
-      env:
-        API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+    - name: copy-files
+      run: cp ./target/x86_64-apple-darwin/release/librust_verkle.dylib ./runtimes/osx-arm64/native/. &&
+           cp ./target/x86_64-apple-darwin/release/librust_verkle.dylib ./runtimes/osx-x64/native/.
+    - name: upload-directory
+      uses: actions/upload-artifact@v2
       with:
-        source-directory: runtimes
-        destination-github-username: ${{ github.event.repository.owner.login }}
-        destination-repository-name: 'nethermind'
-        user-email: ${{ github.event.pusher.email }}
-        commit-message: Updating verkle tree shared libraries. See ORIGIN_COMMIT from $GITHUB_REF
-        target-directory: 'src/Nethermind/Nethermind.Trie/runtimes/'
-        target-branch: 'verkle-runtimes'
+        name: binaries
+        path: runtimes
+
+  build-win:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: make
+        run: make build-windows
+      - name: download-directory
+        uses: actions/download-artifact@v2
+        with:
+          name: binaries
+      - name: copy-files
+        run: cp ./target/x86_64-pc-windows-gnu/release/rust_verkle.dll ./runtimes/win-x64/native/.
+      - name: upload-directory
+        uses: actions/upload-artifact@v2
+        with:
+          name: binaries
+          path: runtimes
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: setup
+        run: sudo apt install gcc-arm-linux-gnueabi gcc-aarch64-linux-gnu -y
+      - name: make
+        run: make build-linux-all
+      - name: download-directory
+        uses: actions/download-artifact@v2
+        with:
+          name: binaries
+      - name: copy-files
+        run: cp ./target/arm-unknown-linux-gnueabi/release/librust_verkle.so ./runtimes/linux-arm/native/. &&
+             cp ./target/aarch64-unknown-linux-gnu/release/librust_verkle.so ./runtimes/linux-arm64/native/. &&
+             cp ./target/x86_64-unknown-linux-gnu/release/librust_verkle.so ./runtimes/linux-x64/native/.
+      - name: push-nethermind
+        if: ${{ github.event_name == 'push' }}
+        id: push_directory
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        with:
+          source-directory: runtimes
+          destination-github-username: ${{ github.event.repository.owner.login }}
+          destination-repository-name: 'nethermind'
+          user-email: ${{ github.event.pusher.email }}
+          commit-message: Updating verkle tree shared libraries. See ORIGIN_COMMIT from $GITHUB_REF
+          target-directory: 'src/Nethermind/Nethermind.Trie/runtimes/'
+          target-branch: 'verkle-runtimes'

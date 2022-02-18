@@ -4,6 +4,7 @@ PATH := $(DIR)/osxcross/target/bin:$(PATH)
 all: setup-env build-all
 
 build-all: build-osx build-linux build-windows build-linux-arm build-linux-arm64
+build-linux-all: build-linux build-linux-arm build-linux-arm64
 
 build-osx:
 	rustup default nightly
