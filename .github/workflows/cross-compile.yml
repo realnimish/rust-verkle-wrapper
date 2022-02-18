@@ -15,8 +15,6 @@ jobs:
     - uses: actions/checkout@v2
     - name: make
       run: make build-osx
-    - name: create-directory
-      run: sh create_directoy.sh
     - name: copy-files
       run: make osx-dir
     - name: upload-directory
