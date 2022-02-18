@@ -48,7 +48,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: setup
-        run: sudo apt install gcc clang gcc-5-multilib -y
+        run: sudo apt install gcc clang gcc-multilib -y
       - name: make
         run: make build-linux-all
       - name: download-directory
