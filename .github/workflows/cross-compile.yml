@@ -8,29 +8,66 @@ on:
       - main
 
 jobs:
-  build:
 
-    runs-on: ubuntu-latest
-
+  build-osx:
+    runs-on: macos-latest
     steps:
     - uses: actions/checkout@v2
-    - name: setup-osxcross
-      run: sh setup.sh
     - name: make
-      run: make build-all
-    - name: create-directory
-      run: sh create_directoy.sh
-    - name: push-nethermind
-      if: ${{ github.event_name == 'push' }}
-      id: push_directory
-      uses: cpina/github-action-push-to-another-repository@main
-      env:
-        API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+      run: make build-osx
+    - name: copy-files
+      run: make osx-dir
+    - name: upload-directory
+      uses: actions/upload-artifact@v2
       with:
-        source-directory: runtimes
-        destination-github-username: ${{ github.event.repository.owner.login }}
-        destination-repository-name: 'nethermind'
-        user-email: ${{ github.event.pusher.email }}
-        commit-message: Updating verkle tree shared libraries. See ORIGIN_COMMIT from $GITHUB_REF
-        target-directory: 'src/Nethermind/Nethermind.Trie/runtimes/'
-        target-branch: 'verkle-runtimes'
+        name: binaries
+        path: runtimes
+
+  build-win:
+    needs: build-osx
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: make
+        run: make build-windows
+      - name: download-directory
+        uses: actions/download-artifact@v2
+        with:
+          name: binaries
+      - name: copy-files
+        run: make win-dir
+      - name: upload-directory
+        uses: actions/upload-artifact@v2
+        with:
+          name: binaries
+          path: runtimes
+
+  build-linux:
+    needs: build-win
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: setup
+        run: sudo apt install gcc-arm-linux-gnueabi gcc-aarch64-linux-gnu -y
+      - name: make
+        run: make build-linux-all
+      - name: download-directory
+        uses: actions/download-artifact@v2
+        with:
+          name: binaries
+      - name: copy-files
+        run: make linux-dir
+      - name: push-nethermind
+        if: ${{ github.event_name == 'push' }}
+        id: push_directory
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        with:
+          source-directory: runtimes
+          destination-github-username: ${{ github.event.repository.owner.login }}
+          destination-repository-name: 'nethermind'
+          user-email: ${{ github.event.pusher.email }}
+          commit-message: Updating verkle tree shared libraries. See ORIGIN_COMMIT from $GITHUB_REF
+          target-directory: 'src/Nethermind/Nethermind.Trie/runtimes/'
+          target-branch: 'verkle-runtimes'

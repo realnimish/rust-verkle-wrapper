@@ -1,14 +1,13 @@
 DIR := $(shell pwd)
-PATH := $(DIR)/osxcross/target/bin:$(PATH)
 
-all: setup-env build-all
+all: build-all
 
 build-all: build-osx build-linux build-windows build-linux-arm build-linux-arm64
+build-linux-all: build-linux build-linux-arm build-linux-arm64
 
 build-osx:
 	rustup default nightly
-	rustup target add x86_64-apple-darwin
-	cargo build --target=x86_64-apple-darwin --release
+	cargo build --release
 
 build-linux:
 	rustup default nightly
@@ -17,9 +16,7 @@ build-linux:
 
 build-windows:
 	rustup default nightly
-	rustup target add x86_64-pc-windows-gnu
-	rustup toolchain install stable-x86_64-pc-windows-gnu
-	cargo +nightly build --target=x86_64-pc-windows-gnu --release
+	cargo build --release
 
 build-linux-arm:
 	rustup default nightly
@@ -31,8 +28,23 @@ build-linux-arm64:
 	rustup target add aarch64-unknown-linux-gnu
 	cargo build --target=aarch64-unknown-linux-gnu --release
 
-setup-env:
-	sh setup.sh
+osx-dir:
+	@mkdir -p runtimes/osx-arm64/native
+	@mkdir -p runtimes/osx-x64/native
+	@cp ./target/release/librust_verkle.dylib ./runtimes/osx-arm64/native/.
+	@cp ./target/release/librust_verkle.dylib ./runtimes/osx-x64/native/.
+
+win-dir:
+	@mkdir -p runtimes/win-x64/native
+	@cp ./target/release/rust_verkle.dll ./runtimes/win-x64/native/.
+
+linux-dir:
+	@mkdir -p runtimes/linux-arm64/native
+	@mkdir -p runtimes/linux-arm/native
+	@mkdir -p runtimes/linux-x64/native
+	@cp ./target/arm-unknown-linux-gnueabi/release/librust_verkle.so ./runtimes/linux-arm/native/.
+	@cp ./target/aarch64-unknown-linux-gnu/release/librust_verkle.so ./runtimes/linux-arm64/native/.
+	@cp ./target/x86_64-unknown-linux-gnu/release/librust_verkle.so ./runtimes/linux-x64/native/.
 
 clean:
 #	rm -rf target
