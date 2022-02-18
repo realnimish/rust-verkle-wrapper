@@ -18,8 +18,8 @@ jobs:
     - name: create-directory
       run: sh create_directoy.sh
     - name: copy-files
-      run: cp ./target/x86_64-apple-darwin/release/librust_verkle.dylib ./runtimes/osx-arm64/native/. &&
-           cp ./target/x86_64-apple-darwin/release/librust_verkle.dylib ./runtimes/osx-x64/native/.
+      run: cp ./target/release/librust_verkle.dylib ./runtimes/osx-arm64/native/. &&
+           cp ./target/release/librust_verkle.dylib ./runtimes/osx-x64/native/.
     - name: upload-directory
       uses: actions/upload-artifact@v2
       with:
@@ -38,7 +38,7 @@ jobs:
         with:
           name: binaries
       - name: copy-files
-        run: cp ./target/x86_64-pc-windows-gnu/release/rust_verkle.dll ./runtimes/win-x64/native/.
+        run: cp ./target/release/rust_verkle.dll ./runtimes/win-x64/native/.
       - name: upload-directory
         uses: actions/upload-artifact@v2
         with:
