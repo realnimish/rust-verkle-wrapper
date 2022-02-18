@@ -9,46 +9,46 @@ on:
 
 jobs:
 
-#   build-osx:
-#     runs-on: macos-latest
-#     steps:
-#     - uses: actions/checkout@v2
-#     - name: make
-#       run: make build-osx
-#     - name: copy-files
-#       run: make osx-dir
-#     - name: upload-directory
-#       uses: actions/upload-artifact@v2
-#       with:
-#         name: binaries
-#         path: runtimes
+  build-osx:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: make
+      run: make build-osx
+    - name: copy-files
+      run: make osx-dir
+    - name: upload-directory
+      uses: actions/upload-artifact@v2
+      with:
+        name: binaries
+        path: runtimes
 
-#   build-win:
-#     needs: build-osx
-#     runs-on: windows-latest
-#     steps:
-#       - uses: actions/checkout@v2
-#       - name: make
-#         run: make build-windows
-#       - name: download-directory
-#         uses: actions/download-artifact@v2
-#         with:
-#           name: binaries
-#       - name: copy-files
-#         run: make win-dir
-#       - name: upload-directory
-#         uses: actions/upload-artifact@v2
-#         with:
-#           name: binaries
-#           path: runtimes
+  build-win:
+    needs: build-osx
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: make
+        run: make build-windows
+      - name: download-directory
+        uses: actions/download-artifact@v2
+        with:
+          name: binaries
+      - name: copy-files
+        run: make win-dir
+      - name: upload-directory
+        uses: actions/upload-artifact@v2
+        with:
+          name: binaries
+          path: runtimes
 
   build-linux:
-#     needs: build-win
+    needs: build-win
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: setup
-        run: sudo apt install gcc-arm-linux-gnueabi gcc-aarch64-linux-gnu -y
+        run: sudo apt install gcc-arm-linux-gnueabi g++-arm-linux-gnueabi gcc-aarch64-linux-gnu g++-aarch64-linux-gnu g++-9-multilib-arm-linux-gnueabi gcc-9-multilib-arm-linux-gnueabi -y
       - name: make
         run: make build-linux-all
       - name: download-directory
