@@ -50,7 +50,7 @@ jobs:
       - name: setup
         run: sudo apt install gcc-arm-linux-gnueabi g++-arm-linux-gnueabi gcc-aarch64-linux-gnu g++-aarch64-linux-gnu g++-9-multilib-arm-linux-gnueabi gcc-9-multilib-arm-linux-gnueabi -y
       - name: make
-        run: make build-linux
+        run: make build-linux build-linux-arm
       - name: download-directory
         uses: actions/download-artifact@v2
         with:
