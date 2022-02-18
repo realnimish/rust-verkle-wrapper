@@ -48,7 +48,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: setup
-        run: sudo apt install gcc-arm-linux-gnueabi gcc-aarch64-linux-gnu gcc-multilib -y
+        run: sudo apt install gcc-arm-linux-gnueabi gcc-aarch64-linux-gnu gcc-5-multilib -y
       - name: make
         run: make build-linux-all
       - name: download-directory
