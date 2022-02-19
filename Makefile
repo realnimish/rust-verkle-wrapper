@@ -21,6 +21,7 @@ build-linux:
 build-linux-arm:
 	rustup default nightly
 	rustup target add arm-unknown-linux-gnueabi
+	CC=arm-linux-gnueabi-gcc
 	BINDGEN_EXTRA_CLANG_ARGS='--sysroot /usr/arm-linux-gnueabi' cargo build --target arm-unknown-linux-gnueabi --release
 
 build-linux-arm64:
