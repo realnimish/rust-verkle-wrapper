@@ -4,13 +4,13 @@ use verkle_trie::{
 };
 use verkle_trie::committer::precompute::PrecomputeLagrange;
 use verkle_trie::config::VerkleConfig;
-use crate::verkle_variants::traits::*;
+use crate::verkle_variants::traits::FFI;
 
 pub type VerkleTrie = Trie<MemoryDb, PrecomputeLagrange>;
 
 impl FFI for VerkleTrie {
 
-    fn verkle_trie_new() -> Self {
+    fn verkle_trie_new(_path: &str) -> Self {
         let _db = MemoryDb::new();
         let config = match VerkleConfig::new(_db) {
             Ok(cnf) => cnf,

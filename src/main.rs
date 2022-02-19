@@ -1,12 +1,23 @@
 use std::mem::transmute;
 use rust_verkle::*;
+use std::ffi::CStr;
+use std::os::raw::c_char;
+
+pub fn str_to_cstr(val: &str) -> *const c_char {
+    let byte = val.as_bytes();
+    unsafe {
+        CStr::from_bytes_with_nul_unchecked(byte)
+        .as_ptr()
+    }
+}
 
 fn main() {
-    let database_scheme = 0;
-    let commit_scheme = 1;
+    let database_scheme = DatabaseScheme::MemoryDb;
+    let commit_scheme = CommitScheme::TestCommitment;
+    let path = str_to_cstr("./db/dummy");
 
     println!("creating new trie...");
-    let trie = verkle_trie_new(database_scheme, commit_scheme);
+    let trie = verkle_trie_new(database_scheme, commit_scheme, path);
 
     let _one:[u8;32] = [
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -36,8 +47,11 @@ fn main() {
     let mut check = verify_verkle_proof(trie, proof.ptr, proof.len, one_32, one);
     assert_eq!(check, 1);
 
+    let database_scheme = DatabaseScheme::MemoryDb;
+    let commit_scheme = CommitScheme::TestCommitment;
+
     println!("Creating another trie");
-    let trie2 = verkle_trie_new(database_scheme, commit_scheme);
+    let trie2 = verkle_trie_new(database_scheme, commit_scheme, path);
 
     let keys = vec![_one,_one_32];
     let vals = vec![_one_32,_one];

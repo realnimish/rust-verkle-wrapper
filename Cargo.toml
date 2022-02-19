@@ -26,3 +26,10 @@ smallvec = "1.6.1"
 criterion = "0.3.4"
 sha2 = "0.9.3"
 itertools = "0.10.1"
+rocksdb = { version = "0.18", features = [
+    "snappy",
+], default-features = false}
+
+[dev-dependencies]
+serial_test = "*"
+tempfile = "3.3.0"
