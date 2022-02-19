@@ -9,24 +9,24 @@ build-osx:
 	rustup default nightly
 	cargo build --release
 
+build-windows:
+	rustup default nightly
+	cargo build --release
+
 build-linux:
 	rustup default nightly
 	rustup target add x86_64-unknown-linux-gnu
 	cargo build --target=x86_64-unknown-linux-gnu --release
 
-build-windows:
-	rustup default nightly
-	cargo build --release
-
 build-linux-arm:
 	rustup default nightly
 	rustup target add arm-unknown-linux-gnueabi
-	cargo build --target=arm-unknown-linux-gnueabi --release
+	BINDGEN_EXTRA_CLANG_ARGS='--sysroot /usr/arm-linux-gnueabi' cargo build --target arm-unknown-linux-gnueabi --release
 
 build-linux-arm64:
 	rustup default nightly
 	rustup target add aarch64-unknown-linux-gnu
-	cargo build --target=aarch64-unknown-linux-gnu --release
+	BINDGEN_EXTRA_CLANG_ARGS='--sysroot /usr/aarch64-linux-gnu' cargo build --target aarch64-unknown-linux-gnu --release
 
 osx-dir:
 	@mkdir -p runtimes/osx-arm64/native
