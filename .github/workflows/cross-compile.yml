@@ -30,10 +30,6 @@ jobs:
       - uses: actions/checkout@v2
       - name: make
         run: make build-windows
-      - name: download-directory
-        uses: actions/download-artifact@v2
-        with:
-          name: binaries
       - name: copy-files
         run: make win-dir
       - name: upload-directory
@@ -55,6 +51,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: binaries
+          path: runtimes
       - name: copy-files
         run: make linux-dir
       - name: push-nethermind
