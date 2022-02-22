@@ -13,3 +13,5 @@ Cargo.lock
 MacOSX10.10.sdk.tar.xz
 /osxcross
 /runtimes
+
+db
