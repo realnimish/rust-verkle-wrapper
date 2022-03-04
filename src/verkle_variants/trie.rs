@@ -15,6 +15,7 @@ use crate::verkle_variants::traits::FFI;
 
 use ark_ec::ProjectiveCurve;
 use verkle_trie::database::memory_db::MemoryDb;
+use crate::memory_db::VerkleMemoryDb;
 
 
 pub type VerkleTrieRocksDBTest = Trie<VerkleDb<RocksDb>, TestCommitter>;
@@ -41,10 +42,10 @@ impl FFI for VerkleTrieRocksDBPreCompute {
 }
 
 
-pub type VerkleTrieMemoryTest = Trie<MemoryDb, TestCommitter>;
+pub type VerkleTrieMemoryTest = Trie<VerkleMemoryDb, TestCommitter>;
 impl FFI for VerkleTrieMemoryTest {
     fn verkle_trie_new(_path: &str) -> Self {
-        let db = MemoryDb::new();
+        let db = VerkleMemoryDb::new();
         let committer = TestCommitter;
         let config = Config { db, committer};
         let mut _trie = Trie::new(config);
@@ -53,10 +54,10 @@ impl FFI for VerkleTrieMemoryTest {
 }
 
 
-pub type VerkleTrieMemoryPreCompute= Trie<MemoryDb, PrecomputeLagrange>;
+pub type VerkleTrieMemoryPreCompute= Trie<VerkleMemoryDb, PrecomputeLagrange>;
 impl FFI for VerkleTrieMemoryPreCompute {
     fn verkle_trie_new(_path: &str) -> Self {
-        let db = MemoryDb::new();
+        let db = VerkleMemoryDb::new();
         let g_aff: Vec<_> = CRS.G.iter().map(|point| point.into_affine()).collect();
         let committer = PrecomputeLagrange::precompute(&g_aff);
         let config = Config { db, committer};

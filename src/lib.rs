@@ -1,5 +1,7 @@
 #![feature(vec_into_raw_parts)]
 mod verkle_variants;
+mod memory_db;
+
 use std::slice;
 use std::mem::transmute;
 use std::convert::TryInto;
@@ -119,8 +121,14 @@ pub extern fn verkle_trie_flush(vt: *mut VerkleTrie) {
 pub extern fn verkle_trie_clear(vt: *mut VerkleTrie) {
     let _vt = unsafe{&mut *vt};
     match _vt {
-        VerkleTrie::MemoryTest(_vt) => (),
-        VerkleTrie::MemoryPrelagrange(_vt) => (),
+        VerkleTrie::MemoryTest(vt) => {
+            vt.storage.batch.clear();
+            vt.storage.cache.clear()
+        },
+        VerkleTrie::MemoryPrelagrange(vt) => {
+            vt.storage.batch.clear();
+            vt.storage.cache.clear()
+        },
         VerkleTrie::RocksdbTest(vt) => {
             vt.storage.batch.clear();
             vt.storage.cache.clear()

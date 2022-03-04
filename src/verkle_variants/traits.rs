@@ -11,7 +11,7 @@ use crate::{
     proof_ptr_to_proof_vec,
 };
 
-pub trait FFI: TrieTrait{
+pub trait FFI: TrieTrait {
 
     fn verkle_trie_new(path: &str) -> Self;
     
