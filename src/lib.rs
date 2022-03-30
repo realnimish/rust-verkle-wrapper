@@ -5,8 +5,6 @@ mod verkle_variants;
 
 use crate::db::VerkleMemDb;
 use crate::verkle_variants::traits::DB;
-use crate::Database::VerkleMemoryDb;
-use crate::Database::{VerkleDiskDb, VerkleReadOnlyDiskDb};
 use std::convert::TryInto;
 use std::ffi::CStr;
 use std::mem::transmute;
@@ -27,9 +25,9 @@ pub enum VerkleTrie {
 
 #[repr(C)]
 pub enum Database {
-    VerkleDiskDb(db::VerkleRocksDb),
-    VerkleReadOnlyDiskDb(db::VerkleRocksDb),
-    VerkleMemoryDb(db::VerkleMemDb),
+    // Variant: Variant(db: db, readOnly: bool)
+    VerkleDiskDb(db::VerkleRocksDb, bool),
+    VerkleMemoryDb(db::VerkleMemDb, bool),
 }
 
 #[repr(C)]
@@ -61,15 +59,15 @@ pub extern "C" fn create_verkle_db(
     let db = match database_scheme {
         DatabaseScheme::RocksDb => {
             let _db = db::VerkleRocksDb::create_db(db_path);
-            VerkleDiskDb(_db)
+            Database::VerkleDiskDb(_db, false)
         }
         DatabaseScheme::MemoryDb => {
             let _db = db::VerkleMemDb::create_db(db_path);
-            VerkleMemoryDb(_db)
+            Database::VerkleMemoryDb(_db, false)
         }
         DatabaseScheme::RocksDbReadOnly => {
             let _db = db::VerkleRocksDb::create_db(db_path);
-            VerkleReadOnlyDiskDb(_db)
+            Database::VerkleDiskDb(_db, true)
         }
     };
     let ret = unsafe { transmute(Box::new(db)) };
@@ -150,34 +148,24 @@ pub extern "C" fn create_trie_from_db(
 ) -> *mut VerkleTrie {
     let _db = unsafe { &mut *db };
     let vt = match _db {
-        Database::VerkleDiskDb(db) => match commit_scheme {
+        Database::VerkleDiskDb(db, readOnly) => match commit_scheme {
             CommitScheme::TestCommitment => {
                 let _vt = trie::VerkleTrieRocksDBTest::create_from_db(db);
-                VerkleTrie::RocksdbTest(_vt, false)
+                VerkleTrie::RocksdbTest(_vt, *readOnly)
             }
             CommitScheme::PrecomputeLagrange => {
                 let _vt = trie::VerkleTrieRocksDBPreCompute::create_from_db(db);
-                VerkleTrie::RocksdbPrelagrange(_vt, false)
+                VerkleTrie::RocksdbPrelagrange(_vt, *readOnly)
             }
         },
-        Database::VerkleMemoryDb(db) => match commit_scheme {
+        Database::VerkleMemoryDb(db, readOnly) => match commit_scheme {
             CommitScheme::TestCommitment => {
                 let _vt = trie::VerkleTrieMemoryTest::create_from_db(db);
-                VerkleTrie::MemoryTest(_vt, false)
+                VerkleTrie::MemoryTest(_vt, *readOnly)
             }
             CommitScheme::PrecomputeLagrange => {
                 let _vt = trie::VerkleTrieMemoryPreCompute::create_from_db(db);
-                VerkleTrie::MemoryPrelagrange(_vt, false)
-            }
-        },
-        Database::VerkleReadOnlyDiskDb(db) => match commit_scheme {
-            CommitScheme::TestCommitment => {
-                let _vt = trie::VerkleTrieRocksDBTest::create_from_db(db);
-                VerkleTrie::RocksdbTest(_vt, true)
-            }
-            CommitScheme::PrecomputeLagrange => {
-                let _vt = trie::VerkleTrieRocksDBPreCompute::create_from_db(db);
-                VerkleTrie::RocksdbPrelagrange(_vt, true)
+                VerkleTrie::MemoryPrelagrange(_vt, *readOnly)
             }
         },
     };
