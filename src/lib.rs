@@ -26,8 +26,8 @@ pub enum VerkleTrie {
 #[repr(C)]
 pub enum Database {
     // Variant: Variant(db: db, readOnly: bool)
-    VerkleDiskDb(db::VerkleRocksDb, bool),
-    VerkleMemoryDb(db::VerkleMemDb, bool),
+    VerkleDiskDb(*mut db::VerkleRocksDb, bool),
+    VerkleMemoryDb(*mut db::VerkleMemDb, bool),
 }
 
 #[repr(C)]
@@ -51,6 +51,26 @@ pub enum CommitScheme {
 }
 
 #[no_mangle]
+pub extern  "C" fn create_readonly_db(db: *mut Database) -> *mut Database {
+    let _db = unsafe { &mut *db };
+
+    let read_db = match _db {
+        Database::VerkleDiskDb(db, _) => {
+            let db = unsafe { &mut **db };
+            Database::VerkleDiskDb(db, true)
+        },
+        Database::VerkleMemoryDb(db, _) => {
+            // let db = &*db;
+            let db = unsafe { &mut **db };
+            Database::VerkleMemoryDb(db, true)
+        }
+    };
+
+    let ret = unsafe { transmute(Box::new(read_db)) };
+    ret
+}
+
+#[no_mangle]
 pub extern "C" fn create_verkle_db(
     database_scheme: DatabaseScheme,
     db_path: *const c_char,
@@ -60,18 +80,22 @@ pub extern "C" fn create_verkle_db(
     let db = match database_scheme {
         DatabaseScheme::RocksDb => {
             let _db = db::VerkleRocksDb::create_db(db_path);
+            let _db = unsafe { transmute(Box::new(_db)) };
             Database::VerkleDiskDb(_db, false)
         }
         DatabaseScheme::MemoryDb => {
             let _db = db::VerkleMemDb::create_db(db_path);
+            let _db = unsafe { transmute(Box::new(_db)) };
             Database::VerkleMemoryDb(_db, false)
         }
         DatabaseScheme::RocksDbReadOnly => {
             let _db = db::VerkleRocksDb::create_db(db_path);
+            let _db = unsafe { transmute(Box::new(_db)) };
             Database::VerkleDiskDb(_db, true)
         }
         DatabaseScheme::MemoryDbReadOnly => {
             let _db = db::VerkleMemDb::create_db(db_path);
+            let _db = unsafe { transmute(Box::new(_db)) };
             Database::VerkleMemoryDb(_db, true)
         }
     };
@@ -165,20 +189,24 @@ pub extern "C" fn create_trie_from_db(
     let vt = match _db {
         Database::VerkleDiskDb(db, readOnly) => match commit_scheme {
             CommitScheme::TestCommitment => {
+                let db = unsafe { &mut **db };
                 let _vt = trie::VerkleTrieRocksDBTest::create_from_db(db);
                 VerkleTrie::RocksdbTest(_vt, *readOnly)
             }
             CommitScheme::PrecomputeLagrange => {
+                let db = unsafe { &mut **db };
                 let _vt = trie::VerkleTrieRocksDBPreCompute::create_from_db(db);
                 VerkleTrie::RocksdbPrelagrange(_vt, *readOnly)
             }
         },
         Database::VerkleMemoryDb(db, readOnly) => match commit_scheme {
             CommitScheme::TestCommitment => {
+                let db = unsafe { &mut **db };
                 let _vt = trie::VerkleTrieMemoryTest::create_from_db(db);
                 VerkleTrie::MemoryTest(_vt, *readOnly)
             }
             CommitScheme::PrecomputeLagrange => {
+                let db = unsafe { &mut **db };
                 let _vt = trie::VerkleTrieMemoryPreCompute::create_from_db(db);
                 VerkleTrie::MemoryPrelagrange(_vt, *readOnly)
             }
