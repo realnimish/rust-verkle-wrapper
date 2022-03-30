@@ -40,6 +40,7 @@ pub struct Proof {
 pub enum DatabaseScheme {
     MemoryDb,
     RocksDb,
+    MemoryDbReadOnly,
     RocksDbReadOnly,
 }
 
@@ -68,6 +69,10 @@ pub extern "C" fn create_verkle_db(
         DatabaseScheme::RocksDbReadOnly => {
             let _db = db::VerkleRocksDb::create_db(db_path);
             Database::VerkleDiskDb(_db, true)
+        }
+        DatabaseScheme::MemoryDbReadOnly => {
+            let _db = db::VerkleMemDb::create_db(db_path);
+            Database::VerkleMemoryDb(_db, true)
         }
     };
     let ret = unsafe { transmute(Box::new(db)) };
@@ -101,6 +106,16 @@ pub extern "C" fn verkle_trie_new(
             CommitScheme::PrecomputeLagrange => {
                 let _vt = trie::VerkleTrieRocksDBPreCompute::verkle_trie_new(db_path);
                 VerkleTrie::RocksdbPrelagrange(_vt, false)
+            }
+        },
+        DatabaseScheme::MemoryDbReadOnly => match commit_scheme {
+            CommitScheme::TestCommitment => {
+                let _vt = trie::VerkleTrieMemoryTest::verkle_trie_new(db_path);
+                VerkleTrie::MemoryTest(_vt, true)
+            }
+            CommitScheme::PrecomputeLagrange => {
+                let _vt = trie::VerkleTrieMemoryPreCompute::verkle_trie_new(db_path);
+                VerkleTrie::MemoryPrelagrange(_vt, true)
             }
         },
         DatabaseScheme::RocksDbReadOnly => match commit_scheme {
