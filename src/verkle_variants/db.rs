@@ -10,6 +10,7 @@ use verkle_trie::database::{
 };
 
 use verkle_trie::database::generic::GenericBatchDB;
+use crate::readonly_disk_db::VerkleReadOnlyDiskDb;
 
 pub type VerkleRocksDb = GenericBatchDB<RocksDb>;
 impl DB for VerkleRocksDb {
@@ -24,5 +25,13 @@ impl DB for VerkleMemDb {
     fn create_db(path: &str) -> Self {
         let _db = MemoryDb::new();
         _db
+    }
+}
+
+pub type VerkleReadOnlyRocksDb = VerkleReadOnlyDiskDb<RocksDb>;
+impl DB for VerkleReadOnlyRocksDb {
+    fn create_db(path: &str) -> Self {
+        let mut db = GenericBatchDB::from_path(path);
+        Self::from_db(&mut db)
     }
 }

@@ -1,12 +1,11 @@
 #![feature(vec_into_raw_parts)]
 mod disk_db;
 mod memory_db;
+mod readonly_disk_db;
 mod verkle_variants;
 
 use crate::db::VerkleMemDb;
 use crate::verkle_variants::traits::DB;
-use crate::Database::VerkleMemoryDb;
-use crate::Database::{VerkleDiskDb, VerkleReadOnlyDiskDb};
 use std::convert::TryInto;
 use std::ffi::CStr;
 use std::mem::transmute;
@@ -29,7 +28,7 @@ pub enum VerkleTrie {
 #[repr(C)]
 pub enum Database {
     VerkleDiskDb(db::VerkleRocksDb),
-    VerkleReadOnlyDiskDb(db::VerkleRocksDb),
+    VerkleReadOnlyDiskDb(db::VerkleReadOnlyRocksDb),
     VerkleMemoryDb(db::VerkleMemDb),
 }
 
@@ -62,15 +61,15 @@ pub extern "C" fn create_verkle_db(
     let db = match database_scheme {
         DatabaseScheme::RocksDb => {
             let _db = db::VerkleRocksDb::create_db(db_path);
-            VerkleDiskDb(_db)
+            Database::VerkleDiskDb(_db)
         }
         DatabaseScheme::MemoryDb => {
             let _db = db::VerkleMemDb::create_db(db_path);
-            VerkleMemoryDb(_db)
+            Database::VerkleMemoryDb(_db)
         }
         DatabaseScheme::RocksDbReadOnly => {
-            let _db = db::VerkleRocksDb::create_db(db_path);
-            VerkleReadOnlyDiskDb(_db)
+            let _db = db::VerkleReadOnlyRocksDb::create_db(db_path);
+            Database::VerkleReadOnlyDiskDb(_db)
         }
     };
     let ret = unsafe { transmute(Box::new(db)) };

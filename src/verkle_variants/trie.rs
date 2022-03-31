@@ -7,7 +7,8 @@ use verkle_trie::{
 
 use crate::disk_db::VerkleDiskDb;
 use crate::memory_db::VerkleMemoryDb;
-use crate::verkle_variants::db::{VerkleMemDb, VerkleRocksDb};
+use crate::readonly_disk_db::VerkleReadOnlyDiskDb;
+use crate::verkle_variants::db::{VerkleMemDb, VerkleRocksDb, VerkleReadOnlyRocksDb};
 use crate::{Database, Proof};
 use ark_ec::ProjectiveCurve;
 use verkle_trie::database::memory_db::MemoryDb;
@@ -27,6 +28,28 @@ impl FFI for VerkleTrieRocksDBTest {
 
     fn create_from_db(db: &'static mut VerkleRocksDb) -> Self {
         let _db = VerkleDiskDb::new(db);
+        let committer = TestCommitter;
+        let config = Config { db: _db, committer };
+        let mut _trie = Trie::new(config);
+        _trie
+    }
+}
+
+pub type VerkleTrieReadOnlyRocksDBTest = Trie<VerkleReadOnlyDiskDb<RocksDb>, TestCommitter>;
+
+impl FFI for VerkleTrieReadOnlyRocksDBTest {
+    type DbObject = VerkleReadOnlyRocksDb;
+
+    fn verkle_trie_new(path: &str) -> Self {
+        let db = VerkleReadOnlyDiskDb::from_path(path);
+        let committer = TestCommitter;
+        let config = Config { db, committer };
+        let mut _trie = Trie::new(config);
+        _trie
+    }
+
+    fn create_from_db(db: &'static mut VerkleReadOnlyRocksDb) -> Self {
+        let _db = VerkleReadOnlyDiskDb::new(db);
         let committer = TestCommitter;
         let config = Config { db: _db, committer };
         let mut _trie = Trie::new(config);
